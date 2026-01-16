@@ -58,7 +58,9 @@
 
         <div class="header">
             <div class="brand">Sheebra POS 🦓</div>
-            <div style="display: flex; gap: 10px; align-items: center;">
+<a href="/" style="font-size:11px; color:#4f46e5; text-decoration:none; font-weight:bold">👉 Ir al Admin (Dueño)</a>
+    </div>            
+<div style="display: flex; gap: 10px; align-items: center;">
                  <button @click="fakeScan" style="background: #eee; border: none; padding: 8px; border-radius: 8px; font-size: 20px;">📷</button>
                 <div class="badge">MODO CAJERO</div>
             </div>
