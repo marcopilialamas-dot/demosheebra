@@ -52,15 +52,18 @@
 </head>
 <body>
     <div id="app">
+        
         <a href="https://wa.me/549XXXXXXXXXX?text=Hola!%20Vi%20la%20demo%20POS%20de%20Sheebra%20y%20quiero%20saber%20mas" target="_blank" class="cta-float-pos">
             <span>🚀 ¿LO QUIERES?</span>
         </a>
 
         <div class="header">
-            <div class="brand">Sheebra POS 🦓</div>
-<a href="/" style="font-size:11px; color:#4f46e5; text-decoration:none; font-weight:bold">👉 Ir al Admin (Dueño)</a>
-    </div>            
-<div style="display: flex; gap: 10px; align-items: center;">
+            <div>
+                <div class="brand">Sheebra POS 🦓</div>
+                <a href="/" style="font-size:11px; color:#4f46e5; text-decoration:none; font-weight:bold">👉 Ir al Admin (Dueño)</a>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center;">
                  <button @click="fakeScan" style="background: #eee; border: none; padding: 8px; border-radius: 8px; font-size: 20px;">📷</button>
                 <div class="badge">MODO CAJERO</div>
             </div>
@@ -139,8 +142,7 @@
                     searchQuery: '',
                     showCart: false,
                     loading: false,
-                    cart: [], // Array de { p: producto, qty: cantidad }
-                    // MISMOS DATOS QUE EL ADMIN PARA CONSISTENCIA
+                    cart: [],
                     products: [
                         ['SKU101', 'Coca Cola 2.25L', 3200],
                         ['SKU102', 'Fernet Branca 750ml', 8500],
@@ -172,7 +174,6 @@
                     return '$' + value.toLocaleString('es-AR');
                 },
                 addToCart(product) {
-                    // Buscar si ya existe en el carrito
                     const existingItem = this.cart.find(item => item.p[0] === product[0]);
                     
                     if (existingItem) {
@@ -180,14 +181,13 @@
                     } else {
                         this.cart.push({ p: product, qty: 1 });
                     }
-                    // Feedback vibración si es celular (opcional)
                     if (navigator.vibrate) navigator.vibrate(50);
-                    this.searchQuery = ''; // Limpiar búsqueda al agregar
+                    this.searchQuery = ''; 
                 },
                 updateQty(index, change) {
                     this.cart[index].qty += change;
                     if (this.cart[index].qty <= 0) {
-                        this.cart.splice(index, 1); // Eliminar si llega a 0
+                        this.cart.splice(index, 1);
                     }
                     if (this.cart.length === 0) this.showCart = false;
                 },
@@ -201,9 +201,9 @@
                     
                     setTimeout(() => {
                         this.loading = false;
-                        this.cart = []; // Vaciar carrito
+                        this.cart = []; 
                         alert("✨ ¡VENTA EXITOSA!\n\nEl ticket se ha impreso y la caja se abrió. (Fin de la demo POS)");
-                    }, 2000); // Esperar 2 segundos para simular
+                    }, 2000); 
                 }
             }
         }).mount('#app');
