@@ -195,7 +195,7 @@
         <div v-if="loading" class="loading"><div style="background:white; padding:20px; border-radius:10px">✨ Procesando (Demo)...</div></div>
     </div>
 
-    <script>
+ <script>
         const { createApp } = Vue;
         
         try {
@@ -203,9 +203,19 @@
                 data() {
                     const today = new Date().toISOString().split('T')[0];
                     return {
-                        tab: 'dash', loading: false, isUpdating: false,
-                        startDate: today, endDate: today,
+                        // --- ESTADO DE LA APP ---
+                        tab: 'dash', 
+                        loading: false, 
+                        isUpdating: false,
+                        startDate: today, 
+                        endDate: today,
                         chartRenderTimeout: null,
+                        
+                        // --- VARIABLES DE BUSQUEDA (Deben estar aquí sí o sí) ---
+                        stockSearch: '', 
+                        invSearch: '', // <--- AQUÍ ESTÁ LA VARIABLE CLAVE
+                        
+                        // --- DATOS FALSOS ---
                         products: [
                             ['SKU101', 'Coca Cola 2.25L', 3200, 45, 2100, 10],
                             ['SKU102', 'Fernet Branca 750ml', 8500, 12, 6000, 5],
@@ -215,18 +225,41 @@
                             ['SKU106', 'Papel Higienico x4', 4500, 10, 3000, 5],
                             ['SKU107', 'Yerba Playadito 500g', 3800, 20, 2500, 5],
                         ],
+                        
+                        // --- VARIABLES AUXILIARES ---
                         allSales: [], 
-                        stockSearch: '', stockQueryResults: [], restockQueue: [], restockPayMethod: 'Efectivo',
-                        invSearch: '',
+                        stockQueryResults: [], 
+                        restockQueue: [], 
+                        restockPayMethod: 'Efectivo',
                         editor: { show: false, sku: '', name: '', price: 0, stock: 0, isNew: false },
-                        rangeTotal: 0, rangeCount: 0, rangeNet: 0, filteredSales: []
+                        
+                        // --- ESTADISTICAS ---
+                        rangeTotal: 0, 
+                        rangeCount: 0, 
+                        rangeNet: 0, 
+                        filteredSales: []
                     }
                 },
                 computed: {
+                    // --- AQUÍ OCURRÍA EL ERROR (YA CORREGIDO) ---
                     filteredProducts() {
-                        const q = this.invSearch.toUpperCase();
-                        if(!this.products) return [];
-                        return this.products.filter(p => p[1].toUpperCase().includes(q) || p[0].includes(q)).slice(0,20);
+                        // 1. Protección: Si invSearch no existe, usamos '' (vacío)
+                        const searchRaw = this.invSearch || ''; 
+                        const q = searchRaw.toUpperCase();
+                        
+                        // 2. Protección: Si products no cargó, devolvemos lista vacía
+                        if(!this.products || !Array.isArray(this.products)) return [];
+
+                        return this.products.filter(p => {
+                            // 3. Protección: Si el producto p es nulo, lo ignoramos
+                            if (!p) return false;
+                            
+                            // 4. Protección: Convertimos nombre y SKU a string seguro antes de buscar
+                            const sku = (p[0] || '').toString().toUpperCase();
+                            const name = (p[1] || '').toString().toUpperCase();
+                            
+                            return name.includes(q) || sku.includes(q);
+                        }).slice(0,20);
                     }
                 },
                 watch: {
@@ -271,11 +304,7 @@
                     renderChart(sales) {
                         if (this.tab !== 'dash') return;
                         
-                        // Protección por si Chart no carga
-                        if (typeof Chart === 'undefined') {
-                            console.log("ChartJS no cargó aun");
-                            return;
-                        }
+                        if (typeof Chart === 'undefined') return;
 
                         requestAnimationFrame(() => {
                             const ctx1 = document.getElementById('salesChart');
@@ -339,7 +368,7 @@
                     },
                     formatTime(iso) { return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); },
                     filterStockProds() {
-                        const q = this.stockSearch.toUpperCase();
+                        const q = (this.stockSearch || '').toUpperCase(); // Protección aquí también
                         this.stockQueryResults = q ? this.products.filter(p => p[1].toUpperCase().includes(q)).slice(0,5) : [];
                     },
                     addToRestock(p) { this.restockQueue.push({name:p[1], qty:1, cost:p[4]}); this.stockSearch=''; this.stockQueryResults=[]; },
@@ -353,8 +382,9 @@
                 }
             }).mount('#app');
         } catch (err) {
-            alert("Error al iniciar Vue: " + err.message);
+            alert("Error crítico al iniciar: " + err.message);
         }
     </script>
 </body>
 </html>
+
