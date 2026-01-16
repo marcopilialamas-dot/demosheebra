@@ -52,10 +52,9 @@
 </head>
 <body>
     <div id="app">
-        <a href="https://wa.me/5492984902888?text=Hola!%20Probé%20la%20demo%20de%20Sheebra%20y%20me%20interesa" 
-   target="_blank" class="cta-float">
-    <span>🚀 ¿LO QUIERES?</span>
-</a>
+        <a href="https://wa.me/549XXXXXXXXXX?text=Hola!%20Probé%20la%20demo%20de%20Sheebra%20y%20me%20interesa" target="_blank" class="cta-float">
+            <span>🚀 ¿LO QUIERES?</span>
+        </a>
 
         <div style="background:white; padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center">
             <div style="font-weight:800; color:var(--p)">Sheebra Demo 🦓</div>
@@ -83,18 +82,21 @@
                         <div class="badge bg-green">{{ rangeCount }} Tx</div>
                     </div>
                     <div class="kpi-card">
-                        <div><div class="kpi-sub">UTILIDAD</div><div class="kpi-val text-green">${{ rangeNet.toLocaleString() }}</div></div>
+                        <div><div class="kpi-sub">UTILIDAD (Est.)</div><div class="kpi-val text-green">${{ rangeNet.toLocaleString() }}</div></div>
                     </div>
                 </div>
+                
                 <div class="card" style="margin-top:15px; height:200px">
                     <canvas id="salesChart"></canvas>
                 </div>
+                
                 <div class="dash-grid" style="grid-template-columns: 1fr; margin-top:15px">
                     <div class="card" style="height:220px; text-align:center">
                         <h4 style="margin:0 0 10px 0; font-size:11px; color:#6b7280">INGRESOS</h4>
                         <div style="width:100%; height:160px"><canvas id="incomeDonut"></canvas></div>
                     </div>
                 </div>
+                
                 <div style="margin-top:20px; text-transform:uppercase; font-size:11px; font-weight:bold; color:#6b7280; margin-bottom:5px">ÚLTIMAS VENTAS</div>
                 <div class="card scroll-x">
                     <table>
@@ -194,7 +196,8 @@
                 return {
                     tab: 'dash', loading: false, isUpdating: false,
                     startDate: today, endDate: today,
-                    chartRenderTimeout: null,
+                    chartRenderTimeout: null, // <--- VARIABLE PARA DEBOUNCE AGREGADA
+                    
                     // DATOS FALSOS PARA LA DEMO
                     products: [
                         ['SKU101', 'Coca Cola 2.25L', 3200, 45, 2100, 10],
@@ -205,7 +208,7 @@
                         ['SKU106', 'Papel Higienico x4', 4500, 10, 3000, 5],
                         ['SKU107', 'Yerba Playadito 500g', 3800, 20, 2500, 5],
                     ],
-                    allSales: [], // Se llenará al iniciar
+                    allSales: [], 
                     stockSearch: '', stockQueryResults: [], restockQueue: [], restockPayMethod: 'Efectivo',
                     invSearch: '',
                     editor: { show: false, sku: '', name: '', price: 0, stock: 0, isNew: false },
@@ -213,22 +216,24 @@
                 }
             },
             watch: {
+                // WATCHER "BLINDADO" (Como en Desktop)
                 tab(v) { 
                     if (v === 'dash') {
+                        // Cancelar cualquier render anterior
                         if(this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
+                        // Esperar a que la pestaña sea visible
                         this.chartRenderTimeout = setTimeout(() => this.refreshData(), 300);
                     }
                 }
             },
             methods: {
-                // GENERADOR DE VENTAS FALSAS AL INICIAR
                 generateFakeSales() {
                     const methods = ['Efectivo', 'Efectivo', 'Efectivo', 'Mercadopago', 'Debito'];
                     const now = new Date();
                     for(let i=0; i<15; i++) {
                         const randomProd = this.products[Math.floor(Math.random() * this.products.length)];
                         const qty = Math.floor(Math.random() * 3) + 1;
-                        const time = new Date(now.getTime() - Math.floor(Math.random() * 86400000 / 2)); // Hoy
+                        const time = new Date(now.getTime() - Math.floor(Math.random() * 86400000 / 2)); 
                         
                         this.allSales.push({
                             txnId: i,
@@ -239,30 +244,39 @@
                             items: `${randomProd[1]} x${qty}`
                         });
                     }
+                    // Forzar primer render
                     this.refreshData();
                 },
                 refreshData() {
-                    // Simplemente filtramos y mostramos (sin API)
                     this.filteredSales = this.allSales.sort((a,b) => new Date(b.time) - new Date(a.time));
                     this.rangeTotal = this.filteredSales.reduce((a, b) => a + b.total, 0);
                     this.rangeCount = this.filteredSales.length;
-                    this.rangeNet = Math.round(this.rangeTotal * 0.3); // Margen simulado 30%
+                    this.rangeNet = Math.round(this.rangeTotal * 0.3);
                     
-                    this.renderChart(this.filteredSales);
+                    // DEBOUNCE LOGIC (Igual que Desktop)
+                    if (this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
+                    this.chartRenderTimeout = setTimeout(() => {
+                        this.renderChart(this.filteredSales);
+                    }, 200);
                 },
                 renderChart(sales) {
+                    // 1. SI NO ESTOY EN DASH, ABORTAR
                     if (this.tab !== 'dash') return;
                     
-                    // Lógica segura de Desktop
+                    // 2. LOGICA ROBUSTA DE RENDERIZADO
                     requestAnimationFrame(() => {
                         const ctx1 = document.getElementById('salesChart');
                         const ctx2 = document.getElementById('incomeDonut');
                         
+                        // 3. SI EL CANVAS ESTÁ OCULTO, ABORTAR (Evita pantalla blanca)
                         if(!ctx1 || ctx1.offsetParent === null) return;
 
-                        // Destruir charts viejos
-                        if(Chart.getChart(ctx1)) Chart.getChart(ctx1).destroy();
-                        if(Chart.getChart(ctx2)) Chart.getChart(ctx2).destroy();
+                        // 4. DESTRUCCIÓN SEGURA
+                        const existing1 = Chart.getChart(ctx1);
+                        if(existing1) existing1.destroy();
+                        
+                        const existing2 = Chart.getChart(ctx2);
+                        if(existing2) existing2.destroy();
 
                         // 1. Bar Chart
                         const hours = {};
@@ -293,7 +307,6 @@
                         });
                     });
                 },
-                // MOCK ACTIONS
                 fakeProcess() {
                     this.loading = true;
                     setTimeout(() => {
@@ -313,7 +326,6 @@
                         alert("✨ ¡Producto guardado! (Simulación)");
                     }, 800);
                 },
-                // UTILS
                 formatTime(iso) { return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); },
                 filterStockProds() {
                     const q = this.stockSearch.toUpperCase();
@@ -330,7 +342,7 @@
                 }
             },
             mounted() {
-                this.generateFakeSales(); // Llenar el dashboard al entrar
+                this.generateFakeSales(); 
             }
         }).mount('#app');
     </script>
