@@ -6,14 +6,8 @@
     <title>Demo Sheebra 🦓</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.47/vue.global.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.47/vue.global.prod.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            alert("🚨 ERROR CRÍTICO:\n" + message + "\nLínea: " + lineno);
-        };
-    </script>
 
     <style>
         :root { --p: #4f46e5; --bg: #f3f4f6; --c: #111827; --w: #ffffff; --safe-b: 80px; }
@@ -45,6 +39,7 @@
         .loading { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         @keyframes fadeIn { from { opacity: 0.7; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
+        /* CTA FLOTANTE PARA TIKTOK */
         .cta-float {
             position: fixed; bottom: 90px; right: 20px; 
             background: #16a34a; color: white; 
@@ -59,7 +54,8 @@
 </head>
 <body>
     <div id="app">
-        <a href="https://wa.me/549XXXXXXXXXX?text=Hola!%20Probé%20la%20demo%20de%20Sheebra%20y%20me%20interesa" target="_blank" class="cta-float">
+        
+        <a href="https://wa.me/5492984902888?text=Hola!%20Probé%20la%20demo%20de%20Sheebra%20y%20me%20interesa" target="_blank" class="cta-float">
             <span>🚀 ¿LO QUIERES?</span>
         </a>
 
@@ -195,7 +191,7 @@
         <div v-if="loading" class="loading"><div style="background:white; padding:20px; border-radius:10px">✨ Procesando (Demo)...</div></div>
     </div>
 
- <script>
+    <script>
         const { createApp } = Vue;
         
         try {
@@ -203,19 +199,14 @@
                 data() {
                     const today = new Date().toISOString().split('T')[0];
                     return {
-                        // --- ESTADO DE LA APP ---
-                        tab: 'dash', 
-                        loading: false, 
-                        isUpdating: false,
-                        startDate: today, 
-                        endDate: today,
+                        tab: 'dash', loading: false, isUpdating: false,
+                        startDate: today, endDate: today,
                         chartRenderTimeout: null,
                         
-                        // --- VARIABLES DE BUSQUEDA (Deben estar aquí sí o sí) ---
+                        // INICIALIZACIÓN SEGURA DE VARIABLES DE BÚSQUEDA
                         stockSearch: '', 
-                        invSearch: '', // <--- AQUÍ ESTÁ LA VARIABLE CLAVE
+                        invSearch: '', 
                         
-                        // --- DATOS FALSOS ---
                         products: [
                             ['SKU101', 'Coca Cola 2.25L', 3200, 45, 2100, 10],
                             ['SKU102', 'Fernet Branca 750ml', 8500, 12, 6000, 5],
@@ -226,35 +217,27 @@
                             ['SKU107', 'Yerba Playadito 500g', 3800, 20, 2500, 5],
                         ],
                         
-                        // --- VARIABLES AUXILIARES ---
                         allSales: [], 
                         stockQueryResults: [], 
                         restockQueue: [], 
                         restockPayMethod: 'Efectivo',
                         editor: { show: false, sku: '', name: '', price: 0, stock: 0, isNew: false },
                         
-                        // --- ESTADISTICAS ---
-                        rangeTotal: 0, 
-                        rangeCount: 0, 
-                        rangeNet: 0, 
-                        filteredSales: []
+                        rangeTotal: 0, rangeCount: 0, rangeNet: 0, filteredSales: []
                     }
                 },
                 computed: {
-                    // --- AQUÍ OCURRÍA EL ERROR (YA CORREGIDO) ---
+                    // --- AQUÍ ESTABA EL ERROR: AHORA ESTÁ ARREGLADO ---
                     filteredProducts() {
-                        // 1. Protección: Si invSearch no existe, usamos '' (vacío)
-                        const searchRaw = this.invSearch || ''; 
+                        // 1. Usamos una cadena vacía por defecto si invSearch es nulo
+                        const searchRaw = (this.invSearch || '').toString();
                         const q = searchRaw.toUpperCase();
                         
-                        // 2. Protección: Si products no cargó, devolvemos lista vacía
-                        if(!this.products || !Array.isArray(this.products)) return [];
+                        if(!this.products) return [];
 
                         return this.products.filter(p => {
-                            // 3. Protección: Si el producto p es nulo, lo ignoramos
                             if (!p) return false;
-                            
-                            // 4. Protección: Convertimos nombre y SKU a string seguro antes de buscar
+                            // Conversión segura a String antes de buscar
                             const sku = (p[0] || '').toString().toUpperCase();
                             const name = (p[1] || '').toString().toUpperCase();
                             
@@ -303,7 +286,6 @@
                     },
                     renderChart(sales) {
                         if (this.tab !== 'dash') return;
-                        
                         if (typeof Chart === 'undefined') return;
 
                         requestAnimationFrame(() => {
@@ -315,7 +297,6 @@
                             try {
                                 const existing1 = Chart.getChart(ctx1);
                                 if(existing1) existing1.destroy();
-                                
                                 const existing2 = Chart.getChart(ctx2);
                                 if(existing2) existing2.destroy();
 
@@ -368,7 +349,8 @@
                     },
                     formatTime(iso) { return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); },
                     filterStockProds() {
-                        const q = (this.stockSearch || '').toUpperCase(); // Protección aquí también
+                        // BLINDAJE TAMBIEN AQUI
+                        const q = (this.stockSearch || '').toString().toUpperCase();
                         this.stockQueryResults = q ? this.products.filter(p => p[1].toUpperCase().includes(q)).slice(0,5) : [];
                     },
                     addToRestock(p) { this.restockQueue.push({name:p[1], qty:1, cost:p[4]}); this.stockSearch=''; this.stockQueryResults=[]; },
@@ -387,4 +369,5 @@
     </script>
 </body>
 </html>
+
 
