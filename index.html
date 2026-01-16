@@ -39,7 +39,6 @@
         .loading { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         @keyframes fadeIn { from { opacity: 0.7; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* CTA FLOTANTE PARA TIKTOK */
         .cta-float {
             position: fixed; bottom: 90px; right: 20px; 
             background: #16a34a; color: white; 
@@ -55,13 +54,13 @@
 <body>
     <div id="app">
         
-        <a href="https://wa.me/5492984902888?text=Hola!%20Probé%20la%20demo%20de%20Sheebra%20y%20me%20interesa" target="_blank" class="cta-float">
+        <a href="https://wa.me/549XXXXXXXXXX?text=Hola!%20Probé%20la%20demo%20de%20Sheebra%20y%20me%20interesa" target="_blank" class="cta-float">
             <span>🚀 ¿LO QUIERES?</span>
         </a>
 
         <div style="background:white; padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center">
-            <div style="font-weight:800; color:var(--p)">Sheebra Demo 🦓</div>
-            <div class="badge bg-blue">MODO PRUEBA</div>
+            <div style="font-weight:800; color:var(--p)">Sheebra V3 🦓</div>
+            <div class="badge bg-blue">DEMO PREMIUM</div>
         </div>
 
         <div class="content">
@@ -69,12 +68,12 @@
                 <div style="padding:15px; background:white; margin-bottom:15px; border-radius:8px">
                      <div style="display:flex; gap:20px; align-items:end; flex-wrap:wrap">
                         <div style="flex:1;">
-                            <label style="display:block; font-size:11px; color:#6b7280; margin-bottom:5px; font-weight:700">DE</label>
-                            <input type="date" v-model="startDate" disabled style="opacity:0.6">
+                            <label style="display:block; font-size:11px; color:#6b7280; margin-bottom:5px; font-weight:700">DESDE</label>
+                            <input type="date" v-model="startDate">
                         </div>
                         <div style="flex:1;">
                             <label style="display:block; font-size:11px; color:#6b7280; margin-bottom:5px; font-weight:700">HASTA</label>
-                            <input type="date" v-model="endDate" disabled style="opacity:0.6">
+                            <input type="date" v-model="endDate">
                         </div>
                     </div>
                 </div>
@@ -85,7 +84,7 @@
                         <div class="badge bg-green">{{ rangeCount }} Tx</div>
                     </div>
                     <div class="kpi-card">
-                        <div><div class="kpi-sub">UTILIDAD (Est.)</div><div class="kpi-val text-green">${{ rangeNet.toLocaleString() }}</div></div>
+                        <div><div class="kpi-sub">UTILIDAD (30%)</div><div class="kpi-val text-green">${{ rangeNet.toLocaleString() }}</div></div>
                     </div>
                 </div>
                 
@@ -116,23 +115,38 @@
             </div>
 
             <div v-if="tab === 'stock'">
-                <h3>📦 Ingreso Mercadería</h3>
+                <h3>📦 Ingreso & PPP</h3>
                 <div class="card">
                     <input v-model="stockSearch" placeholder="Buscar producto (ej: Coca)..." @input="filterStockProds">
+                    
                     <div v-if="stockQueryResults.length" style="background:#f9fafb; border:1px solid #ddd; max-height:150px; overflow-y:auto; margin-bottom:10px; border-radius:8px">
                         <div v-for="p in stockQueryResults" @click="addToRestock(p)" style="padding:10px; border-bottom:1px solid #eee; font-size:12px; cursor:pointer">
-                            <b>{{ p[1] }}</b> <span style="color:#666">(${{p[4]}})</span>
+                            <b>{{ p[1] }}</b> <span style="color:#666">Cost.Act: ${{p[4]}}</span>
                         </div>
                     </div>
+
                     <div v-if="restockQueue.length">
-                        <div v-for="(item, idx) in restockQueue" :key="idx" style="display:flex; gap:5px; margin-bottom:10px; align-items:center">
-                            <div style="flex:1">
-                                <div style="font-weight:bold; font-size:12px">{{ item.name }}</div>
+                        <div v-for="(item, idx) in restockQueue" :key="idx" style="padding:10px; background:#f0f9ff; margin-bottom:10px; border-radius:8px; border:1px solid #bae6fd">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px">
+                                <b style="font-size:12px">{{ item.name }}</b>
+                                <button class="btn-d" style="width:24px; height:24px; padding:0; border-radius:50%" @click="restockQueue.splice(idx,1)">×</button>
                             </div>
-                            <input type="number" v-model.number="item.qty" style="width:50px; padding:8px; text-align:center">
-                            <button class="btn-d" style="width:30px; padding:0; height:30px; border-radius:50%" @click="restockQueue.splice(idx,1)">×</button>
+                            <div style="display:flex; gap:5px">
+                                <div><label style="font-size:10px">Cant.</label><input type="number" v-model.number="item.qty" style="padding:5px"></div>
+                                <div><label style="font-size:10px">Costo Nuevo</label><input type="number" v-model.number="item.cost" style="padding:5px"></div>
+                            </div>
                         </div>
-                        <button class="btn btn-p" @click="fakeProcess">CONFIRMAR INGRESO (Demo)</button>
+
+                        <hr style="border:0; border-top:1px solid #eee; margin:15px 0">
+                        
+                        <label style="font-size:12px; font-weight:bold">Método de Egreso (Pago al Prov.)</label>
+                        <select v-model="restockPayMethod">
+                            <option>Efectivo Caja</option>
+                            <option>Transferencia</option>
+                            <option>Cuenta Corriente</option>
+                        </select>
+
+                        <button class="btn btn-p" @click="fakeProcess">CONFIRMAR INGRESO (Calc. PPP)</button>
                     </div>
                 </div>
             </div>
@@ -142,6 +156,11 @@
                     <input v-model="invSearch" placeholder="SKU o Nombre" style="margin:0">
                     <button class="btn btn-p" style="width:50px; margin:0" @click="showEdit({})">+</button>
                 </div>
+                
+                <button class="btn btn-w" @click="fakeBulkImport" style="margin-bottom:15px; font-size:12px">
+                    ⚡ SIMULAR CARGA MASIVA (Excel)
+                </button>
+
                 <div style="height:400px; overflow-y:auto">
                     <div v-for="p in filteredProducts" :key="p[0]" @click="showEdit(p)" class="card" style="padding:10px; display:flex; justify-content:space-between; align-items:center">
                         <div>
@@ -150,6 +169,7 @@
                         </div>
                         <div style="text-align:right">
                             <div style="font-weight:bold; color:var(--p)">${{ p[2] }}</div>
+                            <div style="font-size:11px; color:#666">Costo: ${{ p[4].toFixed(0) }}</div>
                             <div class="badge bg-green">{{ p[3] }} u.</div>
                         </div>
                     </div>
@@ -175,20 +195,22 @@
 
         <div v-if="editor.show" class="loading" style="background:rgba(0,0,0,0.8)">
             <div class="card" style="width:85%; max-width:400px;">
-                <h3>{{ editor.isNew ? 'Nuevo Producto' : 'Editar (Simulado)' }}</h3>
+                <h3>{{ editor.isNew ? 'Nuevo Producto' : 'Editar Producto' }}</h3>
                 <label>Nombre</label><input v-model="editor.name">
                 <div style="display:flex; gap:10px">
                     <div><label>Precio</label><input type="number" v-model.number="editor.price"></div>
-                    <div><label>Stock</label><input type="number" v-model.number="editor.stock"></div>
+                    <div><label>Costo</label><input type="number" v-model.number="editor.cost"></div>
                 </div>
+                <label>Stock Inicial</label><input type="number" v-model.number="editor.stock">
+                
                 <div style="margin-top:15px; gap:10px; display:flex; flex-direction:column">
-                    <button class="btn btn-p" @click="fakeSave">Guardar (Demo)</button>
+                    <button class="btn btn-p" @click="fakeSave">Guardar</button>
                     <button class="btn btn-s" @click="editor.show=false">Cancelar</button>
                 </div>
             </div>
         </div>
 
-        <div v-if="loading" class="loading"><div style="background:white; padding:20px; border-radius:10px">✨ Procesando (Demo)...</div></div>
+        <div v-if="loading" class="loading"><div style="background:white; padding:20px; border-radius:10px">✨ Procesando...</div></div>
     </div>
 
     <script>
@@ -197,84 +219,80 @@
         try {
             createApp({
                 data() {
-                    // Usamos una fecha fija para evitar problemas de zona horaria en la demo
-                    const today = new Date().toISOString().split('T')[0];
+                    // Inicializar fechas: Desde hace 15 días hasta hoy
+                    const end = new Date();
+                    const start = new Date();
+                    start.setDate(end.getDate() - 15);
+                    
                     return {
-                        // --- ESTADO DE LA APP ---
-                        version: 'V2.0', // <--- SI NO VES ESTO EN CONSOLA, ES CACHE
-                        tab: 'dash', 
-                        loading: false, 
-                        isUpdating: false,
-                        startDate: today, 
-                        endDate: today,
+                        version: 'V3.0',
+                        tab: 'dash', loading: false, isUpdating: false,
+                        startDate: start.toISOString().split('T')[0], 
+                        endDate: end.toISOString().split('T')[0],
                         chartRenderTimeout: null,
                         
-                        // --- VARIABLES DE TEXTO (Inicializadas) ---
-                        stockSearch: '', 
-                        invSearch: '', 
+                        stockSearch: '', invSearch: '', 
                         
-                        // --- DATOS MOCK ---
+                        // BASE DE DATOS INICIAL
                         products: [
                             ['SKU101', 'Coca Cola 2.25L', 3200, 45, 2100, 10],
                             ['SKU102', 'Fernet Branca 750ml', 8500, 12, 6000, 5],
                             ['SKU103', 'Alfajor Jorgito', 800, 100, 450, 20],
                             ['SKU104', 'Cerveza Quilmes 1L', 2500, 24, 1500, 10],
                             ['SKU105', 'Gomitas Mogul', 1200, 30, 600, 5],
-                            ['SKU106', 'Papel Higienico x4', 4500, 10, 3000, 5],
-                            ['SKU107', 'Yerba Playadito 500g', 3800, 20, 2500, 5],
                         ],
                         
                         allSales: [], 
                         stockQueryResults: [], 
                         restockQueue: [], 
-                        restockPayMethod: 'Efectivo',
-                        editor: { show: false, sku: '', name: '', price: 0, stock: 0, isNew: false },
+                        restockPayMethod: 'Efectivo Caja', // NUEVO CAMPO
+                        editor: { show: false, sku: '', name: '', price: 0, stock: 0, cost:0, isNew: false },
                         
                         rangeTotal: 0, rangeCount: 0, rangeNet: 0, filteredSales: []
                     }
                 },
                 computed: {
-                    // --- FUNCIÓN BLINDADA (IMPOSIBLE QUE FALLE) ---
                     filteredProducts() {
-                        // 1. Convertimos a String pase lo que pase (null, undefined, numero)
                         const termino = String(this.invSearch || ""); 
                         const q = termino.toUpperCase();
-                        
-                        // 2. Si products no existe, devolvemos array vacío
-                        if (!this.products || !Array.isArray(this.products)) return [];
-
+                        if (!this.products) return [];
                         return this.products.filter(p => {
-                            // 3. Si el producto está vacío, ignorar
                             if (!p) return false;
-                            
-                            // 4. Conversión segura de cada campo
                             const sku = String(p[0] || "").toUpperCase();
                             const name = String(p[1] || "").toUpperCase();
-                            
                             return name.includes(q) || sku.includes(q);
-                        }).slice(0, 20);
+                        }).slice(0, 50); // Muestro más productos
                     }
                 },
                 watch: {
                     tab(v) { 
-                        if (v === 'dash') {
-                            if(this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
-                            this.chartRenderTimeout = setTimeout(() => this.refreshData(), 300);
-                        }
-                    }
+                        if (v === 'dash') this.triggerChartUpdate();
+                    },
+                    // AL CAMBIAR FECHAS, ACTUALIZAR GRAFICOS
+                    startDate() { this.triggerChartUpdate(); },
+                    endDate() { this.triggerChartUpdate(); }
                 },
                 methods: {
+                    triggerChartUpdate(){
+                        if(this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
+                        this.chartRenderTimeout = setTimeout(() => this.refreshData(), 300);
+                    },
                     generateFakeSales() {
-                        const methods = ['Efectivo', 'Efectivo', 'Efectivo', 'Mercadopago', 'Debito'];
+                        const methods = ['Efectivo', 'Efectivo', 'Mercadopago', 'Debito'];
                         const now = new Date();
-                        for(let i=0; i<15; i++) {
+                        // Generar ventas en los ultimos 20 dias
+                        for(let i=0; i<30; i++) {
                             const randomProd = this.products[Math.floor(Math.random() * this.products.length)];
                             const qty = Math.floor(Math.random() * 3) + 1;
-                            const time = new Date(now.getTime() - Math.floor(Math.random() * 86400000 / 2)); 
+                            // Fecha aleatoria entre hace 20 dias y hoy
+                            const daysAgo = Math.floor(Math.random() * 20);
+                            const time = new Date();
+                            time.setDate(now.getDate() - daysAgo);
+                            time.setHours(Math.floor(Math.random() * 12) + 9); // 9am a 9pm
                             
                             this.allSales.push({
                                 txnId: i,
-                                date: time.toISOString(),
+                                date: time.toISOString().split('T')[0], // YYYY-MM-DD
                                 time: time.toISOString(),
                                 total: randomProd[2] * qty,
                                 method: methods[Math.floor(Math.random() * methods.length)],
@@ -284,15 +302,22 @@
                         this.refreshData();
                     },
                     refreshData() {
-                        this.filteredSales = this.allSales.sort((a,b) => new Date(b.time) - new Date(a.time));
+                        // FILTRAR POR FECHAS REALES
+                        const start = new Date(this.startDate);
+                        const end = new Date(this.endDate);
+                        end.setHours(23, 59, 59); // Final del día
+
+                        this.filteredSales = this.allSales.filter(s => {
+                            const d = new Date(s.date);
+                            // Ajuste de zona horaria simple
+                            return d >= start && d <= new Date(this.endDate + 'T23:59:59');
+                        }).sort((a,b) => new Date(b.time) - new Date(a.time));
+
                         this.rangeTotal = this.filteredSales.reduce((a, b) => a + b.total, 0);
                         this.rangeCount = this.filteredSales.length;
                         this.rangeNet = Math.round(this.rangeTotal * 0.3);
                         
-                        if (this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
-                        this.chartRenderTimeout = setTimeout(() => {
-                            this.renderChart(this.filteredSales);
-                        }, 200);
+                        this.renderChart(this.filteredSales);
                     },
                     renderChart(sales) {
                         if (this.tab !== 'dash') return;
@@ -301,7 +326,6 @@
                         requestAnimationFrame(() => {
                             const ctx1 = document.getElementById('salesChart');
                             const ctx2 = document.getElementById('incomeDonut');
-                            
                             if(!ctx1 || ctx1.offsetParent === null) return;
 
                             try {
@@ -342,19 +366,82 @@
                         this.loading = true;
                         setTimeout(() => {
                             this.loading = false;
+                            
+                            // LOGICA PPP (PRECIO PROMEDIO PONDERADO)
+                            let mensaje = "✅ STOCK ACTUALIZADO:\n";
+                            
+                            this.restockQueue.forEach(item => {
+                                // Buscar producto original
+                                const prodIndex = this.products.findIndex(p => p[1] === item.name);
+                                if(prodIndex > -1) {
+                                    const p = this.products[prodIndex];
+                                    const stockActual = p[3];
+                                    const costoActual = p[4];
+                                    const cantidadNueva = item.qty;
+                                    const costoNuevo = item.cost;
+                                    
+                                    // FORMULA PPP
+                                    const valorTotal = (stockActual * costoActual) + (cantidadNueva * costoNuevo);
+                                    const stockTotal = stockActual + cantidadNueva;
+                                    const ppp = valorTotal / stockTotal;
+                                    
+                                    // Actualizar producto en memoria
+                                    p[3] = stockTotal;
+                                    p[4] = Math.round(ppp);
+                                    
+                                    mensaje += `- ${item.name}: Nuevo Costo Promedio $${p[4]}\n`;
+                                }
+                            });
+                            
+                            mensaje += `\n💰 Pago registrado con: ${this.restockPayMethod}`;
+
                             this.restockQueue = [];
-                            alert("✨ ¡Stock cargado! (En la versión real esto actualiza tu inventario)");
+                            alert(mensaje);
                         }, 800);
+                    },
+                    fakeBulkImport() {
+                        this.loading = true;
+                        setTimeout(() => {
+                            // GENERAR 20 PRODUCTOS RANDOM
+                            const brands = ['Arcor', 'Bagley', 'Terrabusi', 'La Campagnola'];
+                            const types = ['Mermelada', 'Galletas', 'Fideos', 'Arroz'];
+                            
+                            for(let i=0; i<20; i++) {
+                                const brand = brands[Math.floor(Math.random()*brands.length)];
+                                const type = types[Math.floor(Math.random()*types.length)];
+                                const price = (Math.floor(Math.random() * 50) + 10) * 100;
+                                
+                                this.products.push([
+                                    'IMP-' + Math.floor(Math.random()*9000+1000), // SKU
+                                    `${type} ${brand} Importado`, // Name
+                                    price, // Price
+                                    Math.floor(Math.random()*100), // Stock
+                                    price * 0.6, // Cost
+                                    10 // Reorder
+                                ]);
+                            }
+                            this.loading = false;
+                            alert(`✨ ¡Importación Exitosa! \nSe agregaron 20 productos desde "Excel"`);
+                        }, 1000);
                     },
                     fakeSave() {
                         this.loading = true;
                         setTimeout(() => {
                             this.loading = false;
                             if(this.editor.isNew) {
-                                this.products.push(['NEW', this.editor.name, this.editor.price, this.editor.stock, 0, 5]);
+                                this.products.push(['NEW-'+Math.random().toString().substr(2,4), this.editor.name, this.editor.price, this.editor.stock, this.editor.cost, 5]);
+                            } else {
+                                // Encontrar y editar (simulado)
+                                const idx = this.products.findIndex(p => p[0] === this.editor.sku);
+                                if(idx > -1) {
+                                    this.products[idx][1] = this.editor.name;
+                                    this.products[idx][2] = this.editor.price;
+                                    this.products[idx][3] = this.editor.stock;
+                                    this.products[idx][4] = this.editor.cost;
+                                }
                             }
                             this.editor.show = false;
-                            alert("✨ ¡Producto guardado! (Simulación)");
+                            alert("✨ ¡Producto guardado!");
                         }, 800);
                     },
                     formatTime(iso) { return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); },
@@ -362,14 +449,18 @@
                         const q = String(this.stockSearch || "").toUpperCase();
                         this.stockQueryResults = q ? this.products.filter(p => String(p[1]).toUpperCase().includes(q)).slice(0,5) : [];
                     },
-                    addToRestock(p) { this.restockQueue.push({name:p[1], qty:1, cost:p[4]}); this.stockSearch=''; this.stockQueryResults=[]; },
+                    addToRestock(p) { 
+                        // Agregar con el costo actual por defecto
+                        this.restockQueue.push({name:p[1], qty:1, cost:p[4]}); 
+                        this.stockSearch=''; this.stockQueryResults=[]; 
+                    },
                     showEdit(p) {
-                        if(p[0]) this.editor = { show:true, sku:p[0], name:p[1], price:p[2], stock:p[3], isNew:false };
-                        else this.editor = { show:true, sku:'', name:'', price:0, stock:0, isNew:true };
+                        if(p[0]) this.editor = { show:true, sku:p[0], name:p[1], price:p[2], stock:p[3], cost:p[4], isNew:false };
+                        else this.editor = { show:true, sku:'', name:'', price:0, stock:0, cost:0, isNew:true };
                     }
                 },
                 mounted() {
-                    console.log("APP INICIADA - VERSION: " + this.version);
+                    console.log("SHEEBRA V3 START");
                     this.generateFakeSales(); 
                 }
             }).mount('#app');
@@ -379,6 +470,7 @@
     </script>
 </body>
 </html>
+
 
 
 
