@@ -5,8 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Demo Sheebra 🦓</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.47/vue.global.prod.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.47/vue.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert("🚨 ERROR CRÍTICO:\n" + message + "\nLínea: " + lineno);
+        };
+    </script>
+
     <style>
         :root { --p: #4f46e5; --bg: #f3f4f6; --c: #111827; --w: #ffffff; --safe-b: 80px; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--c); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -37,7 +45,6 @@
         .loading { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         @keyframes fadeIn { from { opacity: 0.7; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* CTA FLOTANTE PARA TIKTOK */
         .cta-float {
             position: fixed; bottom: 90px; right: 20px; 
             background: #16a34a; color: white; 
@@ -188,157 +195,166 @@
         <div v-if="loading" class="loading"><div style="background:white; padding:20px; border-radius:10px">✨ Procesando (Demo)...</div></div>
     </div>
 
-   <script>
+    <script>
         const { createApp } = Vue;
-        createApp({
-            data() {
-                const today = new Date().toISOString().split('T')[0];
-                return {
-                    tab: 'dash', loading: false, isUpdating: false,
-                    startDate: today, endDate: today,
-                    chartRenderTimeout: null,
-                    
-                    // DATOS FALSOS PARA LA DEMO
-                    products: [
-                        ['SKU101', 'Coca Cola 2.25L', 3200, 45, 2100, 10],
-                        ['SKU102', 'Fernet Branca 750ml', 8500, 12, 6000, 5],
-                        ['SKU103', 'Alfajor Jorgito', 800, 100, 450, 20],
-                        ['SKU104', 'Cerveza Quilmes 1L', 2500, 24, 1500, 10],
-                        ['SKU105', 'Gomitas Mogul', 1200, 30, 600, 5],
-                        ['SKU106', 'Papel Higienico x4', 4500, 10, 3000, 5],
-                        ['SKU107', 'Yerba Playadito 500g', 3800, 20, 2500, 5],
-                    ],
-                    allSales: [], 
-                    stockSearch: '', stockQueryResults: [], restockQueue: [], restockPayMethod: 'Efectivo',
-                    invSearch: '',
-                    editor: { show: false, sku: '', name: '', price: 0, stock: 0, isNew: false },
-                    rangeTotal: 0, rangeCount: 0, rangeNet: 0, filteredSales: []
-                }
-            },
-            // --- CORRECCIÓN: MOVIMOS ESTO AQUÍ ---
-            computed: {
-                filteredProducts() {
-                    const q = this.invSearch.toUpperCase();
-                    return this.products.filter(p => p[1].toUpperCase().includes(q) || p[0].includes(q)).slice(0,20);
-                }
-            },
-            // -------------------------------------
-            watch: {
-                tab(v) { 
-                    if (v === 'dash') {
-                        if(this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
-                        this.chartRenderTimeout = setTimeout(() => this.refreshData(), 300);
+        
+        try {
+            createApp({
+                data() {
+                    const today = new Date().toISOString().split('T')[0];
+                    return {
+                        tab: 'dash', loading: false, isUpdating: false,
+                        startDate: today, endDate: today,
+                        chartRenderTimeout: null,
+                        products: [
+                            ['SKU101', 'Coca Cola 2.25L', 3200, 45, 2100, 10],
+                            ['SKU102', 'Fernet Branca 750ml', 8500, 12, 6000, 5],
+                            ['SKU103', 'Alfajor Jorgito', 800, 100, 450, 20],
+                            ['SKU104', 'Cerveza Quilmes 1L', 2500, 24, 1500, 10],
+                            ['SKU105', 'Gomitas Mogul', 1200, 30, 600, 5],
+                            ['SKU106', 'Papel Higienico x4', 4500, 10, 3000, 5],
+                            ['SKU107', 'Yerba Playadito 500g', 3800, 20, 2500, 5],
+                        ],
+                        allSales: [], 
+                        stockSearch: '', stockQueryResults: [], restockQueue: [], restockPayMethod: 'Efectivo',
+                        invSearch: '',
+                        editor: { show: false, sku: '', name: '', price: 0, stock: 0, isNew: false },
+                        rangeTotal: 0, rangeCount: 0, rangeNet: 0, filteredSales: []
                     }
-                }
-            },
-            methods: {
-                generateFakeSales() {
-                    const methods = ['Efectivo', 'Efectivo', 'Efectivo', 'Mercadopago', 'Debito'];
-                    const now = new Date();
-                    for(let i=0; i<15; i++) {
-                        const randomProd = this.products[Math.floor(Math.random() * this.products.length)];
-                        const qty = Math.floor(Math.random() * 3) + 1;
-                        const time = new Date(now.getTime() - Math.floor(Math.random() * 86400000 / 2)); 
-                        
-                        this.allSales.push({
-                            txnId: i,
-                            date: time.toISOString(),
-                            time: time.toISOString(),
-                            total: randomProd[2] * qty,
-                            method: methods[Math.floor(Math.random() * methods.length)],
-                            items: `${randomProd[1]} x${qty}`
-                        });
+                },
+                computed: {
+                    filteredProducts() {
+                        const q = this.invSearch.toUpperCase();
+                        if(!this.products) return [];
+                        return this.products.filter(p => p[1].toUpperCase().includes(q) || p[0].includes(q)).slice(0,20);
                     }
-                    this.refreshData();
                 },
-                refreshData() {
-                    this.filteredSales = this.allSales.sort((a,b) => new Date(b.time) - new Date(a.time));
-                    this.rangeTotal = this.filteredSales.reduce((a, b) => a + b.total, 0);
-                    this.rangeCount = this.filteredSales.length;
-                    this.rangeNet = Math.round(this.rangeTotal * 0.3);
-                    
-                    if (this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
-                    this.chartRenderTimeout = setTimeout(() => {
-                        this.renderChart(this.filteredSales);
-                    }, 200);
-                },
-                renderChart(sales) {
-                    if (this.tab !== 'dash') return;
-                    
-                    requestAnimationFrame(() => {
-                        const ctx1 = document.getElementById('salesChart');
-                        const ctx2 = document.getElementById('incomeDonut');
-                        
-                        if(!ctx1 || ctx1.offsetParent === null) return;
-
-                        const existing1 = Chart.getChart(ctx1);
-                        if(existing1) existing1.destroy();
-                        
-                        const existing2 = Chart.getChart(ctx2);
-                        if(existing2) existing2.destroy();
-
-                        const hours = {};
-                        sales.forEach(s => {
-                            const h = new Date(s.time).getHours();
-                            hours[h] = (hours[h] || 0) + s.total;
-                        });
-                        
-                        new Chart(ctx1, {
-                            type: 'bar',
-                            data: {
-                                labels: Object.keys(hours).map(h => h+'h'),
-                                datasets: [{ label: 'Ventas', data: Object.values(hours), backgroundColor: '#4f46e5', borderRadius: 4 }]
-                            },
-                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-                        });
-
-                        const methods = {};
-                        sales.forEach(s => methods[s.method] = (methods[s.method] || 0) + s.total);
-                        new Chart(ctx2, {
-                            type: 'doughnut',
-                            data: {
-                                labels: Object.keys(methods),
-                                datasets: [{ data: Object.values(methods), backgroundColor: ['#16a34a', '#06b6d4', '#2563eb', '#eab308'] }]
-                            },
-                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-                        });
-                    });
-                },
-                fakeProcess() {
-                    this.loading = true;
-                    setTimeout(() => {
-                        this.loading = false;
-                        this.restockQueue = [];
-                        alert("✨ ¡Stock cargado! (En la versión real esto actualiza tu inventario)");
-                    }, 800);
-                },
-                fakeSave() {
-                    this.loading = true;
-                    setTimeout(() => {
-                        this.loading = false;
-                        if(this.editor.isNew) {
-                            this.products.push(['NEW', this.editor.name, this.editor.price, this.editor.stock, 0, 5]);
+                watch: {
+                    tab(v) { 
+                        if (v === 'dash') {
+                            if(this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
+                            this.chartRenderTimeout = setTimeout(() => this.refreshData(), 300);
                         }
-                        this.editor.show = false;
-                        alert("✨ ¡Producto guardado! (Simulación)");
-                    }, 800);
+                    }
                 },
-                formatTime(iso) { return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); },
-                filterStockProds() {
-                    const q = this.stockSearch.toUpperCase();
-                    this.stockQueryResults = q ? this.products.filter(p => p[1].toUpperCase().includes(q)).slice(0,5) : [];
+                methods: {
+                    generateFakeSales() {
+                        const methods = ['Efectivo', 'Efectivo', 'Efectivo', 'Mercadopago', 'Debito'];
+                        const now = new Date();
+                        for(let i=0; i<15; i++) {
+                            const randomProd = this.products[Math.floor(Math.random() * this.products.length)];
+                            const qty = Math.floor(Math.random() * 3) + 1;
+                            const time = new Date(now.getTime() - Math.floor(Math.random() * 86400000 / 2)); 
+                            
+                            this.allSales.push({
+                                txnId: i,
+                                date: time.toISOString(),
+                                time: time.toISOString(),
+                                total: randomProd[2] * qty,
+                                method: methods[Math.floor(Math.random() * methods.length)],
+                                items: `${randomProd[1]} x${qty}`
+                            });
+                        }
+                        this.refreshData();
+                    },
+                    refreshData() {
+                        this.filteredSales = this.allSales.sort((a,b) => new Date(b.time) - new Date(a.time));
+                        this.rangeTotal = this.filteredSales.reduce((a, b) => a + b.total, 0);
+                        this.rangeCount = this.filteredSales.length;
+                        this.rangeNet = Math.round(this.rangeTotal * 0.3);
+                        
+                        if (this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
+                        this.chartRenderTimeout = setTimeout(() => {
+                            this.renderChart(this.filteredSales);
+                        }, 200);
+                    },
+                    renderChart(sales) {
+                        if (this.tab !== 'dash') return;
+                        
+                        // Protección por si Chart no carga
+                        if (typeof Chart === 'undefined') {
+                            console.log("ChartJS no cargó aun");
+                            return;
+                        }
+
+                        requestAnimationFrame(() => {
+                            const ctx1 = document.getElementById('salesChart');
+                            const ctx2 = document.getElementById('incomeDonut');
+                            
+                            if(!ctx1 || ctx1.offsetParent === null) return;
+
+                            try {
+                                const existing1 = Chart.getChart(ctx1);
+                                if(existing1) existing1.destroy();
+                                
+                                const existing2 = Chart.getChart(ctx2);
+                                if(existing2) existing2.destroy();
+
+                                const hours = {};
+                                sales.forEach(s => {
+                                    const h = new Date(s.time).getHours();
+                                    hours[h] = (hours[h] || 0) + s.total;
+                                });
+                                
+                                new Chart(ctx1, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: Object.keys(hours).map(h => h+'h'),
+                                        datasets: [{ label: 'Ventas', data: Object.values(hours), backgroundColor: '#4f46e5', borderRadius: 4 }]
+                                    },
+                                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                                });
+
+                                const methods = {};
+                                sales.forEach(s => methods[s.method] = (methods[s.method] || 0) + s.total);
+                                new Chart(ctx2, {
+                                    type: 'doughnut',
+                                    data: {
+                                        labels: Object.keys(methods),
+                                        datasets: [{ data: Object.values(methods), backgroundColor: ['#16a34a', '#06b6d4', '#2563eb', '#eab308'] }]
+                                    },
+                                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                                });
+                            } catch(e) { console.error(e); }
+                        });
+                    },
+                    fakeProcess() {
+                        this.loading = true;
+                        setTimeout(() => {
+                            this.loading = false;
+                            this.restockQueue = [];
+                            alert("✨ ¡Stock cargado! (En la versión real esto actualiza tu inventario)");
+                        }, 800);
+                    },
+                    fakeSave() {
+                        this.loading = true;
+                        setTimeout(() => {
+                            this.loading = false;
+                            if(this.editor.isNew) {
+                                this.products.push(['NEW', this.editor.name, this.editor.price, this.editor.stock, 0, 5]);
+                            }
+                            this.editor.show = false;
+                            alert("✨ ¡Producto guardado! (Simulación)");
+                        }, 800);
+                    },
+                    formatTime(iso) { return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); },
+                    filterStockProds() {
+                        const q = this.stockSearch.toUpperCase();
+                        this.stockQueryResults = q ? this.products.filter(p => p[1].toUpperCase().includes(q)).slice(0,5) : [];
+                    },
+                    addToRestock(p) { this.restockQueue.push({name:p[1], qty:1, cost:p[4]}); this.stockSearch=''; this.stockQueryResults=[]; },
+                    showEdit(p) {
+                        if(p[0]) this.editor = { show:true, sku:p[0], name:p[1], price:p[2], stock:p[3], isNew:false };
+                        else this.editor = { show:true, sku:'', name:'', price:0, stock:0, isNew:true };
+                    }
                 },
-                addToRestock(p) { this.restockQueue.push({name:p[1], qty:1, cost:p[4]}); this.stockSearch=''; this.stockQueryResults=[]; },
-                showEdit(p) {
-                    if(p[0]) this.editor = { show:true, sku:p[0], name:p[1], price:p[2], stock:p[3], isNew:false };
-                    else this.editor = { show:true, sku:'', name:'', price:0, stock:0, isNew:true };
+                mounted() {
+                    this.generateFakeSales(); 
                 }
-            },
-            mounted() {
-                this.generateFakeSales(); 
-            }
-        }).mount('#app');
+            }).mount('#app');
+        } catch (err) {
+            alert("Error al iniciar Vue: " + err.message);
+        }
     </script>
 </body>
 </html>
-
