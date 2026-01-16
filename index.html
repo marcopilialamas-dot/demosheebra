@@ -188,7 +188,7 @@
         <div v-if="loading" class="loading"><div style="background:white; padding:20px; border-radius:10px">✨ Procesando (Demo)...</div></div>
     </div>
 
-    <script>
+   <script>
         const { createApp } = Vue;
         createApp({
             data() {
@@ -196,7 +196,7 @@
                 return {
                     tab: 'dash', loading: false, isUpdating: false,
                     startDate: today, endDate: today,
-                    chartRenderTimeout: null, // <--- VARIABLE PARA DEBOUNCE AGREGADA
+                    chartRenderTimeout: null,
                     
                     // DATOS FALSOS PARA LA DEMO
                     products: [
@@ -215,13 +215,18 @@
                     rangeTotal: 0, rangeCount: 0, rangeNet: 0, filteredSales: []
                 }
             },
+            // --- CORRECCIÓN: MOVIMOS ESTO AQUÍ ---
+            computed: {
+                filteredProducts() {
+                    const q = this.invSearch.toUpperCase();
+                    return this.products.filter(p => p[1].toUpperCase().includes(q) || p[0].includes(q)).slice(0,20);
+                }
+            },
+            // -------------------------------------
             watch: {
-                // WATCHER "BLINDADO" (Como en Desktop)
                 tab(v) { 
                     if (v === 'dash') {
-                        // Cancelar cualquier render anterior
                         if(this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
-                        // Esperar a que la pestaña sea visible
                         this.chartRenderTimeout = setTimeout(() => this.refreshData(), 300);
                     }
                 }
@@ -244,7 +249,6 @@
                             items: `${randomProd[1]} x${qty}`
                         });
                     }
-                    // Forzar primer render
                     this.refreshData();
                 },
                 refreshData() {
@@ -253,32 +257,26 @@
                     this.rangeCount = this.filteredSales.length;
                     this.rangeNet = Math.round(this.rangeTotal * 0.3);
                     
-                    // DEBOUNCE LOGIC (Igual que Desktop)
                     if (this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
                     this.chartRenderTimeout = setTimeout(() => {
                         this.renderChart(this.filteredSales);
                     }, 200);
                 },
                 renderChart(sales) {
-                    // 1. SI NO ESTOY EN DASH, ABORTAR
                     if (this.tab !== 'dash') return;
                     
-                    // 2. LOGICA ROBUSTA DE RENDERIZADO
                     requestAnimationFrame(() => {
                         const ctx1 = document.getElementById('salesChart');
                         const ctx2 = document.getElementById('incomeDonut');
                         
-                        // 3. SI EL CANVAS ESTÁ OCULTO, ABORTAR (Evita pantalla blanca)
                         if(!ctx1 || ctx1.offsetParent === null) return;
 
-                        // 4. DESTRUCCIÓN SEGURA
                         const existing1 = Chart.getChart(ctx1);
                         if(existing1) existing1.destroy();
                         
                         const existing2 = Chart.getChart(ctx2);
                         if(existing2) existing2.destroy();
 
-                        // 1. Bar Chart
                         const hours = {};
                         sales.forEach(s => {
                             const h = new Date(s.time).getHours();
@@ -294,7 +292,6 @@
                             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                         });
 
-                        // 2. Donut
                         const methods = {};
                         sales.forEach(s => methods[s.method] = (methods[s.method] || 0) + s.total);
                         new Chart(ctx2, {
@@ -335,10 +332,6 @@
                 showEdit(p) {
                     if(p[0]) this.editor = { show:true, sku:p[0], name:p[1], price:p[2], stock:p[3], isNew:false };
                     else this.editor = { show:true, sku:'', name:'', price:0, stock:0, isNew:true };
-                },
-                get filteredProducts() {
-                    const q = this.invSearch.toUpperCase();
-                    return this.products.filter(p => p[1].toUpperCase().includes(q)).slice(0,20);
                 }
             },
             mounted() {
@@ -348,3 +341,4 @@
     </script>
 </body>
 </html>
+
