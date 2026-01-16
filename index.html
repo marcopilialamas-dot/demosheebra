@@ -197,16 +197,23 @@
         try {
             createApp({
                 data() {
+                    // Usamos una fecha fija para evitar problemas de zona horaria en la demo
                     const today = new Date().toISOString().split('T')[0];
                     return {
-                        tab: 'dash', loading: false, isUpdating: false,
-                        startDate: today, endDate: today,
+                        // --- ESTADO DE LA APP ---
+                        version: 'V2.0', // <--- SI NO VES ESTO EN CONSOLA, ES CACHE
+                        tab: 'dash', 
+                        loading: false, 
+                        isUpdating: false,
+                        startDate: today, 
+                        endDate: today,
                         chartRenderTimeout: null,
                         
-                        // INICIALIZACIÓN SEGURA DE VARIABLES DE BÚSQUEDA
+                        // --- VARIABLES DE TEXTO (Inicializadas) ---
                         stockSearch: '', 
                         invSearch: '', 
                         
+                        // --- DATOS MOCK ---
                         products: [
                             ['SKU101', 'Coca Cola 2.25L', 3200, 45, 2100, 10],
                             ['SKU102', 'Fernet Branca 750ml', 8500, 12, 6000, 5],
@@ -227,22 +234,25 @@
                     }
                 },
                 computed: {
-                    // --- AQUÍ ESTABA EL ERROR: AHORA ESTÁ ARREGLADO ---
+                    // --- FUNCIÓN BLINDADA (IMPOSIBLE QUE FALLE) ---
                     filteredProducts() {
-                        // 1. Usamos una cadena vacía por defecto si invSearch es nulo
-                        const searchRaw = (this.invSearch || '').toString();
-                        const q = searchRaw.toUpperCase();
+                        // 1. Convertimos a String pase lo que pase (null, undefined, numero)
+                        const termino = String(this.invSearch || ""); 
+                        const q = termino.toUpperCase();
                         
-                        if(!this.products) return [];
+                        // 2. Si products no existe, devolvemos array vacío
+                        if (!this.products || !Array.isArray(this.products)) return [];
 
                         return this.products.filter(p => {
+                            // 3. Si el producto está vacío, ignorar
                             if (!p) return false;
-                            // Conversión segura a String antes de buscar
-                            const sku = (p[0] || '').toString().toUpperCase();
-                            const name = (p[1] || '').toString().toUpperCase();
+                            
+                            // 4. Conversión segura de cada campo
+                            const sku = String(p[0] || "").toUpperCase();
+                            const name = String(p[1] || "").toUpperCase();
                             
                             return name.includes(q) || sku.includes(q);
-                        }).slice(0,20);
+                        }).slice(0, 20);
                     }
                 },
                 watch: {
@@ -349,9 +359,8 @@
                     },
                     formatTime(iso) { return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); },
                     filterStockProds() {
-                        // BLINDAJE TAMBIEN AQUI
-                        const q = (this.stockSearch || '').toString().toUpperCase();
-                        this.stockQueryResults = q ? this.products.filter(p => p[1].toUpperCase().includes(q)).slice(0,5) : [];
+                        const q = String(this.stockSearch || "").toUpperCase();
+                        this.stockQueryResults = q ? this.products.filter(p => String(p[1]).toUpperCase().includes(q)).slice(0,5) : [];
                     },
                     addToRestock(p) { this.restockQueue.push({name:p[1], qty:1, cost:p[4]}); this.stockSearch=''; this.stockQueryResults=[]; },
                     showEdit(p) {
@@ -360,6 +369,7 @@
                     }
                 },
                 mounted() {
+                    console.log("APP INICIADA - VERSION: " + this.version);
                     this.generateFakeSales(); 
                 }
             }).mount('#app');
@@ -369,5 +379,6 @@
     </script>
 </body>
 </html>
+
 
 
