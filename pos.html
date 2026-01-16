@@ -46,18 +46,19 @@
         /* CONTENIDO EN GRILLA (CUADROS FLOTANTES) */
        /* CONTENIDO EN GRILLA (CORREGIDO PARA SCROLL) */
        /* CONTENIDO EN GRILLA (CORREGIDO PARA SCROLL) */
+       /* BUSCA ESTA PARTE EN TU CSS */
         .content { 
             flex: 1; 
-            overflow-y: auto; /* Activa el scroll */
-            min-height: 0;    /* 🚨 ESTA LINEA ES LA MAGIA QUE ARREGLA EL SCROLL */
-            
+            overflow-y: auto; 
             padding: 10px; 
-            padding-bottom: 120px; /* Espacio extra abajo para que el carrito no tape nada */
+            padding-bottom: 120px;
+            -webkit-overflow-scrolling: touch; 
             
-            -webkit-overflow-scrolling: touch; /* Suavidad en iPhone */
-            overscroll-behavior-y: contain;    /* Evita que se mueva toda la página */
-            
-            /* Grilla de productos */
+            /* 👇 AGREGAR ESTO SÍ O SÍ 👇 */
+            min-height: 0; 
+            /* 👆 SIN ESTO, EL SCROLL SE TRABA EN MÓVILES */
+
+            /* GRILLA */
             display: grid;
             grid-template-columns: repeat(2, 1fr); 
             gap: 10px;
