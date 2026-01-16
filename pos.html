@@ -44,19 +44,20 @@
         input { padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; background: #f9fafb; }
         
         /* CONTENIDO EN GRILLA (CUADROS FLOTANTES) */
+       /* CONTENIDO EN GRILLA (CORREGIDO PARA SCROLL) */
+       /* CONTENIDO EN GRILLA (CORREGIDO PARA SCROLL) */
         .content { 
             flex: 1; 
-            overflow-y: auto; /* Permite deslizar verticalmente */
-            min-height: 0; /* 🚨 ESTA ES LA CLAVE: Permite que el scroll funcione en Flexbox */
+            overflow-y: auto; /* Activa el scroll */
+            min-height: 0;    /* 🚨 ESTA LINEA ES LA MAGIA QUE ARREGLA EL SCROLL */
             
             padding: 10px; 
-            padding-bottom: 120px; /* Espacio extra para que el carrito no tape el último producto */
+            padding-bottom: 120px; /* Espacio extra abajo para que el carrito no tape nada */
             
-            /* Mejora el tacto en celulares */
-            -webkit-overflow-scrolling: touch; 
-            overscroll-behavior-y: contain; 
+            -webkit-overflow-scrolling: touch; /* Suavidad en iPhone */
+            overscroll-behavior-y: contain;    /* Evita que se mueva toda la página */
             
-            /* GRILLA */
+            /* Grilla de productos */
             display: grid;
             grid-template-columns: repeat(2, 1fr); 
             gap: 10px;
