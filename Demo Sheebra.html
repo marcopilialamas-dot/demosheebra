@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Demo Sheebra 🦓</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.47/vue.global.prod.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --p: #4f46e5; --bg: #f3f4f6; --c: #111827; --w: #ffffff; --safe-b: 80px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--c); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: calc(var(--safe-b) + 80px); -webkit-overflow-scrolling: touch; }
+        .card { background: var(--w); border-radius: 12px; padding: 15px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); margin-bottom: 15px; animation: fadeIn 0.3s ease-in-out; }
+        input, select { padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 14px; margin-bottom: 8px; background: white; }
+        .btn { padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; width: 100%; font-size: 14px; text-transform: uppercase; margin-top: 5px; }
+        .btn-p { background: var(--p); color: white; }
+        .btn-d { background: #fee2e2; color: #b91c1c; }
+        .btn-s { background: white; border: 1px solid #d1d5db; color: #374151; }
+        .btn-w { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; display: inline-block; }
+        .bg-green { background: #dcfce7; color: #166534; }
+        .bg-red { background: #fee2e2; color: #991b1b; }
+        .bg-blue { background: #dbeafe; color: #1e40af; }
+        .dash-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .kpi-card { background: white; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .kpi-val { font-size: 20px; font-weight: 800; }
+        .kpi-sub { font-size: 10px; color: #6b7280; text-transform: uppercase; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; padding: 8px; color: #6b7280; border-bottom: 2px solid #e5e7eb; }
+        td { padding: 10px 8px; border-bottom: 1px solid #f3f4f6; }
+        .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .btm-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; padding: 10px 0; padding-bottom: max(10px, env(safe-area-inset-bottom)); z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #9ca3af; font-weight: 600; width: 20%; }
+        .nav-item.active { color: var(--p); }
+        .nav-icon { font-size: 20px; }
+        .loading { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        @keyframes fadeIn { from { opacity: 0.7; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* CTA FLOTANTE PARA TIKTOK */
+        .cta-float {
+            position: fixed; bottom: 90px; right: 20px; 
+            background: #16a34a; color: white; 
+            padding: 10px 20px; border-radius: 50px; 
+            font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 2000; display: flex; align-items: center; gap: 8px;
+            animation: bounce 2s infinite; cursor: pointer;
+            text-decoration: none; font-size: 13px;
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <a href="https://wa.me/5492984902888?text=Hola!%20Probé%20la%20demo%20de%20Sheebra%20y%20me%20interesa" 
+   target="_blank" class="cta-float">
+    <span>🚀 ¿LO QUIERES?</span>
+</a>
+
+        <div style="background:white; padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center">
+            <div style="font-weight:800; color:var(--p)">Sheebra Demo 🦓</div>
+            <div class="badge bg-blue">MODO PRUEBA</div>
+        </div>
+
+        <div class="content">
+            <div v-show="tab === 'dash'">
+                <div style="padding:15px; background:white; margin-bottom:15px; border-radius:8px">
+                     <div style="display:flex; gap:20px; align-items:end; flex-wrap:wrap">
+                        <div style="flex:1;">
+                            <label style="display:block; font-size:11px; color:#6b7280; margin-bottom:5px; font-weight:700">DE</label>
+                            <input type="date" v-model="startDate" disabled style="opacity:0.6">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="display:block; font-size:11px; color:#6b7280; margin-bottom:5px; font-weight:700">HASTA</label>
+                            <input type="date" v-model="endDate" disabled style="opacity:0.6">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dash-grid">
+                    <div class="kpi-card">
+                        <div><div class="kpi-sub">VENTAS BRUTAS</div><div class="kpi-val">${{ rangeTotal.toLocaleString() }}</div></div>
+                        <div class="badge bg-green">{{ rangeCount }} Tx</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div><div class="kpi-sub">UTILIDAD</div><div class="kpi-val text-green">${{ rangeNet.toLocaleString() }}</div></div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top:15px; height:200px">
+                    <canvas id="salesChart"></canvas>
+                </div>
+                <div class="dash-grid" style="grid-template-columns: 1fr; margin-top:15px">
+                    <div class="card" style="height:220px; text-align:center">
+                        <h4 style="margin:0 0 10px 0; font-size:11px; color:#6b7280">INGRESOS</h4>
+                        <div style="width:100%; height:160px"><canvas id="incomeDonut"></canvas></div>
+                    </div>
+                </div>
+                <div style="margin-top:20px; text-transform:uppercase; font-size:11px; font-weight:bold; color:#6b7280; margin-bottom:5px">ÚLTIMAS VENTAS</div>
+                <div class="card scroll-x">
+                    <table>
+                        <thead><tr><th>Hora</th><th>Total</th><th>Pago</th></tr></thead>
+                        <tbody>
+                            <tr v-for="s in filteredSales.slice(0,10)" :key="s.txnId">
+                                <td>{{ formatTime(s.time) }}</td>
+                                <td style="font-weight:bold">${{ s.total.toLocaleString() }}</td>
+                                <td>{{ s.method }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div v-if="tab === 'stock'">
+                <h3>📦 Ingreso Mercadería</h3>
+                <div class="card">
+                    <input v-model="stockSearch" placeholder="Buscar producto (ej: Coca)..." @input="filterStockProds">
+                    <div v-if="stockQueryResults.length" style="background:#f9fafb; border:1px solid #ddd; max-height:150px; overflow-y:auto; margin-bottom:10px; border-radius:8px">
+                        <div v-for="p in stockQueryResults" @click="addToRestock(p)" style="padding:10px; border-bottom:1px solid #eee; font-size:12px; cursor:pointer">
+                            <b>{{ p[1] }}</b> <span style="color:#666">(${{p[4]}})</span>
+                        </div>
+                    </div>
+                    <div v-if="restockQueue.length">
+                        <div v-for="(item, idx) in restockQueue" :key="idx" style="display:flex; gap:5px; margin-bottom:10px; align-items:center">
+                            <div style="flex:1">
+                                <div style="font-weight:bold; font-size:12px">{{ item.name }}</div>
+                            </div>
+                            <input type="number" v-model.number="item.qty" style="width:50px; padding:8px; text-align:center">
+                            <button class="btn-d" style="width:30px; padding:0; height:30px; border-radius:50%" @click="restockQueue.splice(idx,1)">×</button>
+                        </div>
+                        <button class="btn btn-p" @click="fakeProcess">CONFIRMAR INGRESO (Demo)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="tab === 'inv'">
+                <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center">
+                    <input v-model="invSearch" placeholder="SKU o Nombre" style="margin:0">
+                    <button class="btn btn-p" style="width:50px; margin:0" @click="showEdit({})">+</button>
+                </div>
+                <div style="height:400px; overflow-y:auto">
+                    <div v-for="p in filteredProducts" :key="p[0]" @click="showEdit(p)" class="card" style="padding:10px; display:flex; justify-content:space-between; align-items:center">
+                        <div>
+                            <div style="font-weight:bold">{{ p[1] }}</div>
+                            <div style="font-size:11px; color:#666">{{ p[0] }}</div>
+                        </div>
+                        <div style="text-align:right">
+                            <div style="font-weight:bold; color:var(--p)">${{ p[2] }}</div>
+                            <div class="badge bg-green">{{ p[3] }} u.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             <div v-if="tab === 'users'">
+                <div class="card" style="text-align:center; padding:40px 20px;">
+                    <div style="font-size:40px; margin-bottom:10px">🔒</div>
+                    <h3>Gestión de Usuarios</h3>
+                    <p style="color:#666; font-size:13px">Esta función está bloqueada en la DEMO pública por seguridad.</p>
+                    <a href="#" class="btn btn-p" style="display:block; text-decoration:none; margin-top:20px">Contactar para versión completa</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="btm-nav">
+            <div class="nav-item" :class="{active: tab==='dash'}" @click="tab='dash'"><span class="nav-icon">📊</span><span>Dash</span></div>
+            <div class="nav-item" :class="{active: tab==='stock'}" @click="tab='stock'"><span class="nav-icon">📦</span><span>Stock</span></div>
+            <div class="nav-item" :class="{active: tab==='inv'}" @click="tab='inv'"><span class="nav-icon">📋</span><span>Inv</span></div>
+            <div class="nav-item" :class="{active: tab==='users'}" @click="tab='users'"><span class="nav-icon">👥</span><span>Team</span></div>
+        </div>
+
+        <div v-if="editor.show" class="loading" style="background:rgba(0,0,0,0.8)">
+            <div class="card" style="width:85%; max-width:400px;">
+                <h3>{{ editor.isNew ? 'Nuevo Producto' : 'Editar (Simulado)' }}</h3>
+                <label>Nombre</label><input v-model="editor.name">
+                <div style="display:flex; gap:10px">
+                    <div><label>Precio</label><input type="number" v-model.number="editor.price"></div>
+                    <div><label>Stock</label><input type="number" v-model.number="editor.stock"></div>
+                </div>
+                <div style="margin-top:15px; gap:10px; display:flex; flex-direction:column">
+                    <button class="btn btn-p" @click="fakeSave">Guardar (Demo)</button>
+                    <button class="btn btn-s" @click="editor.show=false">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="loading" class="loading"><div style="background:white; padding:20px; border-radius:10px">✨ Procesando (Demo)...</div></div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                const today = new Date().toISOString().split('T')[0];
+                return {
+                    tab: 'dash', loading: false, isUpdating: false,
+                    startDate: today, endDate: today,
+                    chartRenderTimeout: null,
+                    // DATOS FALSOS PARA LA DEMO
+                    products: [
+                        ['SKU101', 'Coca Cola 2.25L', 3200, 45, 2100, 10],
+                        ['SKU102', 'Fernet Branca 750ml', 8500, 12, 6000, 5],
+                        ['SKU103', 'Alfajor Jorgito', 800, 100, 450, 20],
+                        ['SKU104', 'Cerveza Quilmes 1L', 2500, 24, 1500, 10],
+                        ['SKU105', 'Gomitas Mogul', 1200, 30, 600, 5],
+                        ['SKU106', 'Papel Higienico x4', 4500, 10, 3000, 5],
+                        ['SKU107', 'Yerba Playadito 500g', 3800, 20, 2500, 5],
+                    ],
+                    allSales: [], // Se llenará al iniciar
+                    stockSearch: '', stockQueryResults: [], restockQueue: [], restockPayMethod: 'Efectivo',
+                    invSearch: '',
+                    editor: { show: false, sku: '', name: '', price: 0, stock: 0, isNew: false },
+                    rangeTotal: 0, rangeCount: 0, rangeNet: 0, filteredSales: []
+                }
+            },
+            watch: {
+                tab(v) { 
+                    if (v === 'dash') {
+                        if(this.chartRenderTimeout) clearTimeout(this.chartRenderTimeout);
+                        this.chartRenderTimeout = setTimeout(() => this.refreshData(), 300);
+                    }
+                }
+            },
+            methods: {
+                // GENERADOR DE VENTAS FALSAS AL INICIAR
+                generateFakeSales() {
+                    const methods = ['Efectivo', 'Efectivo', 'Efectivo', 'Mercadopago', 'Debito'];
+                    const now = new Date();
+                    for(let i=0; i<15; i++) {
+                        const randomProd = this.products[Math.floor(Math.random() * this.products.length)];
+                        const qty = Math.floor(Math.random() * 3) + 1;
+                        const time = new Date(now.getTime() - Math.floor(Math.random() * 86400000 / 2)); // Hoy
+                        
+                        this.allSales.push({
+                            txnId: i,
+                            date: time.toISOString(),
+                            time: time.toISOString(),
+                            total: randomProd[2] * qty,
+                            method: methods[Math.floor(Math.random() * methods.length)],
+                            items: `${randomProd[1]} x${qty}`
+                        });
+                    }
+                    this.refreshData();
+                },
+                refreshData() {
+                    // Simplemente filtramos y mostramos (sin API)
+                    this.filteredSales = this.allSales.sort((a,b) => new Date(b.time) - new Date(a.time));
+                    this.rangeTotal = this.filteredSales.reduce((a, b) => a + b.total, 0);
+                    this.rangeCount = this.filteredSales.length;
+                    this.rangeNet = Math.round(this.rangeTotal * 0.3); // Margen simulado 30%
+                    
+                    this.renderChart(this.filteredSales);
+                },
+                renderChart(sales) {
+                    if (this.tab !== 'dash') return;
+                    
+                    // Lógica segura de Desktop
+                    requestAnimationFrame(() => {
+                        const ctx1 = document.getElementById('salesChart');
+                        const ctx2 = document.getElementById('incomeDonut');
+                        
+                        if(!ctx1 || ctx1.offsetParent === null) return;
+
+                        // Destruir charts viejos
+                        if(Chart.getChart(ctx1)) Chart.getChart(ctx1).destroy();
+                        if(Chart.getChart(ctx2)) Chart.getChart(ctx2).destroy();
+
+                        // 1. Bar Chart
+                        const hours = {};
+                        sales.forEach(s => {
+                            const h = new Date(s.time).getHours();
+                            hours[h] = (hours[h] || 0) + s.total;
+                        });
+                        
+                        new Chart(ctx1, {
+                            type: 'bar',
+                            data: {
+                                labels: Object.keys(hours).map(h => h+'h'),
+                                datasets: [{ label: 'Ventas', data: Object.values(hours), backgroundColor: '#4f46e5', borderRadius: 4 }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                        });
+
+                        // 2. Donut
+                        const methods = {};
+                        sales.forEach(s => methods[s.method] = (methods[s.method] || 0) + s.total);
+                        new Chart(ctx2, {
+                            type: 'doughnut',
+                            data: {
+                                labels: Object.keys(methods),
+                                datasets: [{ data: Object.values(methods), backgroundColor: ['#16a34a', '#06b6d4', '#2563eb', '#eab308'] }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                        });
+                    });
+                },
+                // MOCK ACTIONS
+                fakeProcess() {
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.loading = false;
+                        this.restockQueue = [];
+                        alert("✨ ¡Stock cargado! (En la versión real esto actualiza tu inventario)");
+                    }, 800);
+                },
+                fakeSave() {
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.loading = false;
+                        if(this.editor.isNew) {
+                            this.products.push(['NEW', this.editor.name, this.editor.price, this.editor.stock, 0, 5]);
+                        }
+                        this.editor.show = false;
+                        alert("✨ ¡Producto guardado! (Simulación)");
+                    }, 800);
+                },
+                // UTILS
+                formatTime(iso) { return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); },
+                filterStockProds() {
+                    const q = this.stockSearch.toUpperCase();
+                    this.stockQueryResults = q ? this.products.filter(p => p[1].toUpperCase().includes(q)).slice(0,5) : [];
+                },
+                addToRestock(p) { this.restockQueue.push({name:p[1], qty:1, cost:p[4]}); this.stockSearch=''; this.stockQueryResults=[]; },
+                showEdit(p) {
+                    if(p[0]) this.editor = { show:true, sku:p[0], name:p[1], price:p[2], stock:p[3], isNew:false };
+                    else this.editor = { show:true, sku:'', name:'', price:0, stock:0, isNew:true };
+                },
+                get filteredProducts() {
+                    const q = this.invSearch.toUpperCase();
+                    return this.products.filter(p => p[1].toUpperCase().includes(q)).slice(0,20);
+                }
+            },
+            mounted() {
+                this.generateFakeSales(); // Llenar el dashboard al entrar
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
