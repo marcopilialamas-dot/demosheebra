@@ -8,24 +8,87 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.47/vue.global.prod.min.js"></script>
     <style>
         :root { --p: #4f46e5; --bg: #f3f4f6; --c: #111827; --w: #ffffff; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--c); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* LAYOUT PRINCIPAL (Corrección de Scroll) */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: var(--c); 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100dvh; /* Usamos dvh para móviles */
+            overflow: hidden; 
+        }
         
         /* HEADER STYLES */
-        .header { background: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
-        .brand { font-weight: 800; color: var(--p); font-size: 18px; }
+        .header { 
+            background: white; 
+            padding: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #eee;
+            flex-shrink: 0; /* Evita que se aplaste */
+        }
+        .brand { font-weight: 800; color: var(--p); font-size: 18px; display: block;}
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; background: #dbeafe; color: #1e40af; }
 
-        /* SEARCH & CONTENT */
-        .search-bar-container { padding: 10px; background: white; border-bottom: 1px solid #eee; }
+        /* SEARCH */
+        .search-bar-container { 
+            padding: 10px; 
+            background: white; 
+            border-bottom: 1px solid #eee; 
+            flex-shrink: 0;
+        }
         input { padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; background: #f9fafb; }
-        .content { flex: 1; overflow-y: auto; padding: 10px; -webkit-overflow-scrolling: touch; padding-bottom: 80px; }
         
-        /* PRODUCT CARD */
-        .prod-card { background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); active: scale(0.98); transition: transform 0.1s; }
-        .prod-name { font-weight: 600; margin-bottom: 4px; }
-        .prod-sku { font-size: 11px; color: #6b7280; }
-        .prod-price { font-weight: 800; color: var(--p); font-size: 16px; }
-        .btn-add { background: var(--p); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        /* CONTENIDO EN GRILLA (CUADROS FLOTANTES) */
+        .content { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 10px; 
+            padding-bottom: 100px; /* Espacio extra para el carrito */
+            -webkit-overflow-scrolling: touch; 
+            
+            /* LA MAGIA DE LA GRILLA */
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columnas */
+            gap: 10px;
+            align-content: start;
+        }
+        
+        /* TARJETA DE PRODUCTO (CUADRADA) */
+        .prod-card { 
+            background: white; 
+            padding: 15px; 
+            border-radius: 12px; 
+            display: flex; 
+            flex-direction: column; /* Vertical */
+            justify-content: center; 
+            align-items: center; 
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            transition: transform 0.1s; 
+            border: 1px solid transparent;
+            height: 110px; /* Altura fija para que sean cuadrados */
+            cursor: pointer;
+            position: relative;
+        }
+        .prod-card:active { transform: scale(0.96); border-color: var(--p); background: #eef2ff; }
+        
+        .prod-name { font-weight: 600; margin-bottom: 5px; font-size: 14px; line-height: 1.2;}
+        .prod-sku { font-size: 10px; color: #9ca3af; margin-bottom: 5px; }
+        .prod-price { font-weight: 800; color: var(--p); font-size: 18px; }
+        
+        /* BOLITA DE CANTIDAD (SI YA ESTA EN CARRITO) */
+        .qty-badge {
+            position: absolute; top: 5px; right: 5px;
+            background: var(--p); color: white;
+            width: 20px; height: 20px; border-radius: 50%;
+            font-size: 10px; display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+        }
 
         /* BOTTOM CART BAR */
         .cart-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #eee; padding: 15px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 100; cursor: pointer; }
@@ -53,7 +116,7 @@
 <body>
     <div id="app">
         
-        <a href="https://wa.me/549XXXXXXXXXX?text=Hola!%20Vi%20la%20demo%20POS%20de%20Sheebra%20y%20quiero%20saber%20mas" target="_blank" class="cta-float-pos">
+        <a href="https://wa.me/5492984902888?text=Hola!%20Vi%20la%20demo%20POS%20de%20Sheebra%20y%20quiero%20saber%20mas" target="_blank" class="cta-float-pos">
             <span>🚀 ¿LO QUIERES?</span>
         </a>
 
@@ -62,37 +125,31 @@
                 <div class="brand">Sheebra POS 🦓</div>
                 <a href="/" style="font-size:11px; color:#4f46e5; text-decoration:none; font-weight:bold">👉 Ir al Admin (Dueño)</a>
             </div>
-
-            <div style="display: flex; gap: 10px; align-items: center;">
-                 <button @click="fakeScan" style="background: #eee; border: none; padding: 8px; border-radius: 8px; font-size: 20px;">📷</button>
-                <div class="badge">MODO CAJERO</div>
-            </div>
+            <div class="badge">MODO CAJERO</div>
         </div>
 
         <div class="search-bar-container">
-            <input v-model="searchQuery" placeholder="🔍 Buscar productos (ej: Coca)..." autofocus>
+            <input v-model="searchQuery" placeholder="🔍 Buscar productos..." autofocus>
         </div>
 
         <div class="content">
             <div v-for="p in filteredProducts" :key="p[0]" class="prod-card" @click="addToCart(p)">
-                <div>
-                    <div class="prod-name">{{ p[1] }}</div>
-                    <div class="prod-sku">{{ p[0] }}</div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div class="prod-price">${{ p[2] }}</div>
-                    <button class="btn-add">+</button>
-                </div>
+                <div v-if="getQtyInCart(p[0]) > 0" class="qty-badge">{{ getQtyInCart(p[0]) }}</div>
+                
+                <div class="prod-name">{{ p[1] }}</div>
+                <div class="prod-sku">{{ p[0] }}</div>
+                <div class="prod-price">${{ p[2] }}</div>
             </div>
-            <div v-if="filteredProducts.length === 0" style="text-align: center; color: #999; margin-top: 30px;">
-                No se encontraron productos.
+            
+            <div v-if="filteredProducts.length === 0" style="grid-column: span 2; text-align: center; color: #999; margin-top: 30px;">
+                No encontrado 🤷‍♂️
             </div>
         </div>
 
         <div class="cart-bar" @click="showCart = true" v-if="cart.length > 0">
             <div class="cart-info">
                 <div class="total-price">{{ formatPrice(cartTotal) }}</div>
-                <div class="item-count">{{ cartCount }} items en carrito</div>
+                <div class="item-count">{{ cartCount }} items</div>
             </div>
             <button class="btn-checkout">Ver Carrito</button>
         </div>
@@ -153,6 +210,9 @@
                         ['SKU107', 'Yerba Playadito 500g', 3800],
                         ['SKU108', 'Pan Lactal Bimbo', 2800],
                         ['SKU109', 'Leche La Serenísima', 1500],
+                        ['SKU110', 'Detergente Ala', 2100],
+                        ['SKU111', 'Galletitas Oreos', 1800],
+                        ['SKU112', 'Arroz Gallo 1kg', 1300],
                     ]
                 }
             },
@@ -170,12 +230,16 @@
                 }
             },
             methods: {
-                formatPrice(value) {
-                    return '$' + value.toLocaleString('es-AR');
+                formatPrice(value) { return '$' + value.toLocaleString('es-AR'); },
+                
+                // --- NUEVO: OBTENER CANTIDAD EN CARRITO PARA MOSTRAR EN LA TARJETA ---
+                getQtyInCart(sku) {
+                    const item = this.cart.find(i => i.p[0] === sku);
+                    return item ? item.qty : 0;
                 },
+
                 addToCart(product) {
                     const existingItem = this.cart.find(item => item.p[0] === product[0]);
-                    
                     if (existingItem) {
                         existingItem.qty++;
                     } else {
@@ -191,14 +255,10 @@
                     }
                     if (this.cart.length === 0) this.showCart = false;
                 },
-                fakeScan() {
-                    alert("📷 Simulación: La cámara se abriría aquí para escanear códigos de barras reales.");
-                },
                 fakeCheckout() {
                     if(this.cart.length === 0) return;
                     this.loading = true;
                     this.showCart = false;
-                    
                     setTimeout(() => {
                         this.loading = false;
                         this.cart = []; 
