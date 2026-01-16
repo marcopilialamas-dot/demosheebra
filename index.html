@@ -59,9 +59,11 @@
         </a>
 
         <div style="background:white; padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center">
-            <div style="font-weight:800; color:var(--p)">Sheebra V3.1 🦓</div>
-            <a href="pos.html" style="font-size:11px; color:#4f46e5; text-decoration:none; font-weight:bold">👉 Ir al Modo Cajero (POS)</a>
-    </div>
+            <div>
+                <div style="font-weight:800; color:var(--p)">Sheebra V3.1 🦓</div>
+                <a href="pos.html" style="font-size:11px; color:#4f46e5; text-decoration:none; font-weight:bold">👉 Ir al Modo Cajero (POS)</a>
+            </div>
+            
             <div class="badge bg-blue">DEMO PREMIUM</div>
         </div>
 
@@ -193,6 +195,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div style="height:400px; overflow-y:auto">
                     <div v-for="p in filteredProducts" :key="p[0]" @click="showEdit(p)" class="card" style="padding:10px; display:flex; justify-content:space-between; align-items:center">
                         <div>
@@ -494,8 +497,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
